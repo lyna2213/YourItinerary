@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct ProfileView: View {
+    // @AppStorage lagrer innstillingen i UserDefaults slik at den huskes
+    @AppStorage("isDarkMode") private var isDarkMode: Bool = false
+
     @Binding var userName: String
     let destinations: [Destination]
     @State private var tempName: String = ""
@@ -65,15 +68,13 @@ struct ProfileView: View {
                     List(destinations) { destination in
                         NavigationLink(destination: DestinationDetailView(destination: destination)) {
                             HStack(spacing: 16) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.brand.opacity(0.15))
-                                        .frame(width: 44, height: 44)
-
-                                    Image(systemName: destination.imageName)
-                                        .foregroundColor(.brand)
-                                        .font(.title3)
-                                }
+                                // Viser reisemålets eget bilde fra Assets i listen
+                                Image(destination.imageName)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 50, height: 50)
+                                    .cornerRadius(10)
+                                    .clipped()
 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(destination.title)
@@ -94,6 +95,7 @@ struct ProfileView: View {
             }
             .navigationTitle("Profil")
         }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }
 

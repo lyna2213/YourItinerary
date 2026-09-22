@@ -47,6 +47,7 @@ struct SettingsView: View {
                 }
                 .navigationTitle("Innstillinger")
             }
+            .preferredColorScheme(isDarkMode ? .dark : .light)
         }
     }
 }

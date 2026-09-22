@@ -7,14 +7,14 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct MainView: View {
     @AppStorage("isDarkMode") private var isDarkMode: Bool = false
     @State private var userName: String = "Reisende"
     @State private var destinations: [Destination] = [
         Destination(
             title: "London Helgetur",
             country: "Storbrittania",
-            imageName: "building.2.fill",
+            imageName: "London",
             items: [
                 ItineraryItem(day: "Dag 1", activity: "Innsjekk på hotell", location: "Sentrum"),
                 ItineraryItem(day: "Dag 1", activity: "Middag på Ritz", location: "Piccadilly Circus"),
@@ -22,12 +22,21 @@ struct ContentView: View {
             ]
         ),
         Destination(
-            title: "Sommer i Paris",
+            title: "Disneyland  Paris",
             country: "Frankrike",
-            imageName: "sparkles",
+            imageName: "DisneylandParis",
             items: [
                 ItineraryItem(day: "Dag 1", activity: "Se Eiffeltårnet", location: "Champ de Mars"),
                 ItineraryItem(day: "Dag 2", activity: "Tur til Louvremuseet", location: "Sentral-Paris")
+            ]
+        ),
+        Destination(
+            title: "Sommer i Cebu",
+            country: "Filippinene",
+            imageName: "Philippines",
+            items: [
+                ItineraryItem(day: "Dag 1", activity: "Island Hopping", location: "Oslob"),
+                ItineraryItem(day: "Dag 2", activity: "Tur til Plantation Bay", location: "Waterfront, Cebu")
             ]
         )
     ]
@@ -51,11 +60,11 @@ struct ContentView: View {
         }
         .tint(.brand)
         // Skifter hele appens utseende basert på bryteren
-                .preferredColorScheme(isDarkMode ? .dark : .light)
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 
 }
 
 #Preview {
-    ContentView()
+    MainView()
 }

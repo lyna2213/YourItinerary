@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct DestinationDetailView: View {
+    @AppStorage("isDarkMode") private var isDarkMode: Bool = false
     let destination: Destination
     @State private var showHeaderInfo: Bool = true
     
@@ -18,28 +19,29 @@ struct DestinationDetailView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Header med ZStack, frame og padding
-                ZStack {
-                    LinearGradient(
-                        colors: [.brand, .brand.opacity(0.7)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .frame(height: 140)
+                // Reisens eget bilde øverst som header
+                Image(destination.imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 180)
                     .cornerRadius(16)
-                    
-                    VStack {
-                        Text(destination.title)
-                            .font(.title)
-                            .bold()
-                            .foregroundColor(.white)
-                        Text(destination.country)
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.8))
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.top, 8)
+                    .overlay(
+                        ZStack {
+                            Color.black.opacity(0.35)
+                            VStack {
+                                Text(destination.title)
+                                    .font(.title)
+                                    .bold()
+                                    .foregroundColor(.white)
+                                Text(destination.country)
+                                    .font(.subheadline)
+                                    .foregroundColor(.white.opacity(0.9))
+                            }
+                        }
+                    )
+                    .cornerRadius(16)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
                 
                 // Liste med ForEach for tidsplan
                 List {
@@ -72,6 +74,7 @@ struct DestinationDetailView: View {
                 .scrollContentBackground(.hidden) // Skjuler standard grå/hvit liste-bakgrunn
             }
         }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
         .navigationTitle(destination.title)
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -80,12 +83,12 @@ struct DestinationDetailView: View {
 #Preview {
     DestinationDetailView(
         destination: Destination(
-            title: "Sommer i London",
+            title: "London Helgetur",
             country: "Storbritannia",
-            imageName: "sparkles",
+            imageName: "london_image",
             items: [
                 ItineraryItem(day: "Dag 1", activity: "Testaktivitet", location: "London")
             ]
         )
     )
-}
+} 

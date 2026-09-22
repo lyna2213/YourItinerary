@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct DestinationListView: View {
+    // @AppStorage lagrer innstillingen i UserDefaults slik at den huskes
+    @AppStorage("isDarkMode") private var isDarkMode: Bool = false
+
     let destinations: [Destination]
 
     var body: some View {
@@ -18,37 +21,37 @@ struct DestinationListView: View {
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    // Custom Navigation Title med LinearGradient i en ramme
-                    ZStack {
-                        LinearGradient(
-                            colors: [.brand, .brand.opacity(0.7)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                        .frame(height: 200)
+                    // Hero-bilde øverst på hovedskjermen
+                    Image("hero_banner")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 180)
                         .cornerRadius(16)
-
-                        Text("Your Itinerary")
-                            .font(.largeTitle)
-                            .bold()
-                            .foregroundColor(.white)
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 8)
+                        .overlay(
+                            // Mørk overlay med tittel oppå bildet for god lesbarhet
+                            ZStack {
+                                Color.black.opacity(0.3)
+                                Text("Your Itinerary")
+                                    .font(.largeTitle)
+                                    .bold()
+                                    .foregroundColor(.white)
+                            }
+                        )
+                        .cornerRadius(16)
+                        .padding(.horizontal)
+                        .padding(.top, 8)
 
                     // Liste over reiser
                     List(destinations) { destination in
                         NavigationLink(destination: DestinationDetailView(destination: destination)) {
                             HStack(spacing: 16) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.brand.opacity(0.15))
-                                        .frame(width: 50, height: 50)
-
-                                    Image(systemName: destination.imageName)
-                                        .foregroundColor(.brand)
-                                        .font(.title2)
-                                }
+                                // Viser reisemålets eget bilde fra Assets i listen
+                                Image(destination.imageName)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 50, height: 50)
+                                    .cornerRadius(10)
+                                    .clipped()
 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(destination.title)
@@ -69,6 +72,7 @@ struct DestinationListView: View {
             }
             .toolbar(.hidden, for: .navigationBar) // Skjuler standard system-topplinje
         }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }
 
@@ -77,7 +81,7 @@ struct DestinationListView: View {
         Destination(
             title: "Sommer i London",
             country: "Storbritannia",
-            imageName: "map.fill",
+            imageName: "London",
             items: []
         )
     ])
