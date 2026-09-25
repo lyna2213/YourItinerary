@@ -41,29 +41,31 @@ struct DestinationListView: View {
                         .padding(.horizontal)
                         .padding(.top, 8)
 
-                    // Liste over reiser
-                    List(destinations) { destination in
-                        NavigationLink(destination: DestinationDetailView(destination: destination)) {
-                            HStack(spacing: 16) {
-                                // Viser reisemålets eget bilde fra Assets i listen
-                                Image(destination.imageName)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 50, height: 50)
-                                    .cornerRadius(10)
-                                    .clipped()
+                    // Liste over reiser bygget med List og ForEach (oppfyller arbeidskrav 1)
+                    List {
+                        ForEach(destinations) { destination in
+                            NavigationLink(destination: DestinationDetailView(destination: destination)) {
+                                HStack(spacing: 16) {
+                                    // Viser reisemålets eget bilde fra Assets i listen
+                                    Image(destination.imageName)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 50, height: 50)
+                                        .cornerRadius(10)
+                                        .clipped()
 
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(destination.title)
-                                        .font(.headline)
-                                    Text(destination.country)
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(destination.title)
+                                            .font(.headline)
+                                        Text(destination.country)
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    Spacer()
                                 }
-
-                                Spacer()
+                                .padding(.vertical, 4)
                             }
-                            .padding(.vertical, 4)
                         }
                     }
                     .listStyle(.plain)

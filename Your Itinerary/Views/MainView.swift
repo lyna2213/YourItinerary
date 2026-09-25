@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  MainView.swift
 //  Your Itinerary
 //
 //  Created by Lyn A on 14/09/2026.
@@ -17,12 +17,12 @@ struct MainView: View {
             imageName: "London",
             items: [
                 ItineraryItem(day: "Dag 1", activity: "Innsjekk på hotell", location: "Sentrum"),
-                ItineraryItem(day: "Dag 1", activity: "Middag på Ritz", location: "Piccadilly Circus"),
-                ItineraryItem(day: "Dag 2", activity: "Besøke Big Ben", location: "Westminster")
+                ItineraryItem(day: "Dag 2", activity: "Middag på Ritz", location: "Piccadilly Circus"),
+                ItineraryItem(day: "Dag 3", activity: "Besøke Big Ben", location: "Westminster")
             ]
         ),
         Destination(
-            title: "Disneyland  Paris",
+            title: "Disneyland Paris",
             country: "Frankrike",
             imageName: "DisneylandParis",
             items: [
@@ -55,7 +55,7 @@ struct MainView: View {
 
             SettingsView()
                 .tabItem {
-                    Label("Innstillingar", systemImage: "gearshape.fill")
+                    Label("Innstillinger", systemImage: "gearshape.fill")
                 }
         }
         .tint(.brand)
