@@ -8,10 +8,23 @@
 import SwiftUI
 
 struct DestinationListView: View {
-    // @AppStorage lagrer innstillingen i UserDefaults slik at den huskes
-    @AppStorage("isDarkMode") private var isDarkMode: Bool = false
+    @State private var destinations: [SupabaseDestination] = []
+    @State private var isLoading = true
+    @State private var searchText = ""
+    
+    let service = SupabaseService()
 
-    let destinations: [Destination]
+    // Filtrerer listen basert på søkefeltet
+    var filteredDestinations: [SupabaseDestination] {
+        if searchText.isEmpty {
+            return destinations
+        } else {
+            return destinations.filter {
+                $0.title.localizedCaseInsensitiveContains(searchText) ||
+                $0.country.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -28,7 +41,6 @@ struct DestinationListView: View {
                         .frame(height: 180)
                         .cornerRadius(16)
                         .overlay(
-                            // Mørk overlay med tittel oppå bildet for god lesbarhet
                             ZStack {
                                 Color.black.opacity(0.3)
                                 Text("Your Itinerary")
@@ -41,50 +53,89 @@ struct DestinationListView: View {
                         .padding(.horizontal)
                         .padding(.top, 8)
 
-                    // Liste over reiser bygget med List og ForEach (oppfyller arbeidskrav 1)
-                    List {
-                        ForEach(destinations) { destination in
-                            NavigationLink(destination: DestinationDetailView(destination: destination)) {
-                                HStack(spacing: 16) {
-                                    // Viser reisemålets eget bilde fra Assets i listen
-                                    Image(destination.imageName)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 50, height: 50)
-                                        .cornerRadius(10)
-                                        .clipped()
+                    // Innhold basert på om det laster eller er klart
+                    Group {
+                        if isLoading {
+                            Spacer()
+                            ProgressView("Henter reiser fra skyen...")
+                                .tint(.brand)
+                            Spacer()
+                        } else {
+                            List {
+                                ForEach(filteredDestinations) { destination in
+                                    NavigationLink(destination: SupabaseDetailView(destination: destination)) {
+                                        // Bruker en pen rad-visning
+                                        HStack(spacing: 16) {
+                                            if let imageName = destination.imageName, !imageName.isEmpty {
+                                                Image(imageName)
+                                                    .resizable()
+                                                    .scaledToFill()
+                                                    .frame(width: 60, height: 60)
+                                                    .cornerRadius(10)
+                                                    .clipped()
+                                            } else {
+                                                Image(systemName: "photo")
+                                                    .frame(width: 60, height: 60)
+                                                    .background(Color.gray.opacity(0.2))
+                                                    .cornerRadius(10)
+                                            }
 
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(destination.title)
-                                            .font(.headline)
-                                        Text(destination.country)
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
+                                            VStack(alignment: .leading, spacing: 4) {
+                                                Text(destination.title)
+                                                    .font(.headline)
+                                                Text(destination.country)
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                        }
+                                        .padding(.vertical, 4)
                                     }
-
-                                    Spacer()
                                 }
-                                .padding(.vertical, 4)
+                                .onDelete(perform: deleteItem)
+                            }
+                            .listStyle(.plain)
+                            .scrollContentBackground(.hidden)
+                            .refreshable {
+                                await loadData()
                             }
                         }
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden) // Skjuler standard grå/hvit bakgrunn på listen
                 }
             }
-            .toolbar(.hidden, for: .navigationBar) // Skjuler standard system-topplinje
+            .searchable(text: $searchText, prompt: "Søk etter reisemål...")
+            .toolbar(.hidden, for: .navigationBar)
+            .task {
+                await loadData()
+            }
         }
-        .preferredColorScheme(isDarkMode ? .dark : .light)
+    }
+
+    private func loadData() async {
+        do {
+            destinations = try await SupabaseService.fetchDestinations()
+            isLoading = false
+        } catch {
+            print("Feil ved henting: \(error)")
+            isLoading = false
+        }
+    }
+
+    private func deleteItem(at offsets: IndexSet) {
+        for index in offsets {
+            let itemToDelete = filteredDestinations[index]
+            destinations.removeAll { $0.id == itemToDelete.id }
+            Task {
+                do {
+                    try await SupabaseService
+                        .deleteDestination(id: itemToDelete.id)
+                } catch {
+                    print("Feil ved sletting: \(error)")
+                }
+            }
+        }
     }
 }
 
 #Preview {
-    DestinationListView(destinations: [
-        Destination(
-            title: "Sommer i London",
-            country: "Storbritannia",
-            imageName: "London",
-            items: []
-        )
-    ])
+    DestinationListView()
 }

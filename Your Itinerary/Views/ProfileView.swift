@@ -1,4 +1,3 @@
-//
 //  ProfileView.swift
 //  Your Itinerary
 //
@@ -6,14 +5,25 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ProfileView: View {
-    // @AppStorage lagrer innstillingen i UserDefaults slik at den huskes
     @AppStorage("isDarkMode") private var isDarkMode: Bool = false
+    
+    // Henter brukernavn direkte fra @AppStorage
+    @AppStorage("userName") private var userName: String = "Reisende"
+    
+    // Styrer innloggingsstatus for å kunne logge ut
+    @AppStorage("isAuthenticated") private var isAuthenticated: Bool = true
 
-    @Binding var userName: String
-    let destinations: [Destination]
-    @State private var tempName: String = ""
+    // Om meg / Bio tilstander
+    @AppStorage("userBio") private var userBio: String = "Elsker å reise, oppleve nye kulturer og planlegge spennende turer!"
+    @State private var isEditingBio = false
+    @State private var tempBio = ""
+
+    // Henter kun favorittreiser automatisk fra SwiftData
+    @Query(filter: #Predicate<SavedTrip> { $0.isFavorite == true })
+    private var favoriteTrips: [SavedTrip]
 
     var body: some View {
         NavigationStack {
@@ -21,94 +31,133 @@ struct ProfileView: View {
                 Color.customBackground
                     .ignoresSafeArea()
 
-                VStack(spacing: 16) {
-                    // Profilbilde
-                    ZStack {
-                        Circle()
-                            .fill(Color.brand.opacity(0.15))
-                            .frame(width: 90, height: 90)
-                        Image(systemName: "person.crop.circle.fill")
-                            .resizable()
-                            .frame(width: 80, height: 80)
-                            .foregroundColor(.brand)
-                    }
-                    .padding(.top, 10)
-
-                    Text("Velkommen, \(userName)!")
-                        .font(.title2)
-                        .bold()
-
-                    // Endring av brukernavn
-                    HStack {
-                        TextField("Skriv nytt navn...", text: $tempName)
-                            .textFieldStyle(.roundedBorder)
-
-                        Button("Lagre") {
-                            if !tempName.isEmpty {
-                                userName = tempName
-                                tempName = ""
-                            }
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Profilbilde
+                        ZStack {
+                            Circle()
+                                .fill(Color.brand.opacity(0.15))
+                                .frame(width: 90, height: 90)
+                            Image(systemName: "person.crop.circle.fill")
+                                .resizable()
+                                .frame(width: 80, height: 80)
+                                .foregroundColor(.brand)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.brand)
-                    }
-                    .padding(.horizontal)
+                        .padding(.top, 10)
 
-                    // Overskrift for reiselisten
-                    HStack {
-                        Text("Mine Reiser")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        Spacer()
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 8)
+                        Text("Velkommen, \(userName)!")
+                            .font(.title2)
+                            .bold()
 
-                    // Liste over reiser
-                    List(destinations) { destination in
-                        NavigationLink(destination: DestinationDetailView(destination: destination)) {
-                            HStack(spacing: 16) {
-                                // Viser reisemålets eget bilde fra Assets i listen
-                                Image(destination.imageName)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 50, height: 50)
-                                    .cornerRadius(10)
-                                    .clipped()
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(destination.title)
-                                        .font(.headline)
-                                    Text(destination.country)
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                }
-
+                        // OM MEG SEKSJON
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Om meg")
+                                    .font(.headline)
                                 Spacer()
+                                Button(isEditingBio ? "Ferdig" : "Rediger") {
+                                    if isEditingBio {
+                                        userBio = tempBio
+                                    } else {
+                                        tempBio = userBio
+                                    }
+                                    isEditingBio.toggle()
+                                }
+                                .font(.subheadline)
+                                .foregroundColor(.brand)
                             }
-                            .padding(.vertical, 2)
+
+                            if isEditingBio {
+                                TextField("Skriv litt om deg selv...", text: $tempBio, axis: .vertical)
+                                    .textFieldStyle(.roundedBorder)
+                            } else {
+                                Text(userBio)
+                                    .foregroundColor(.secondary)
+                                    .font(.body)
+                            }
                         }
+                        .padding()
+                        .background(Color.brand.opacity(0.05))
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+
+                        // MINE FAVORITTER SEKSJON
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Mine Favoritter ❤️")
+                                .font(.headline)
+                                .padding(.horizontal)
+
+                            if favoriteTrips.isEmpty {
+                                Text("Ingen favoritter enda. Trykk på hjerte-ikonet på en reise for å legge den til her!")
+                                    .foregroundColor(.secondary)
+                                    .font(.subheadline)
+                                    .padding(.horizontal)
+                            } else {
+                                VStack(spacing: 8) {
+                                    ForEach(favoriteTrips) { trip in
+                                        NavigationLink(destination: DestinationDetailView(trip: trip)) {
+                                            HStack(spacing: 12) {
+                                                if let uiImage = UIImage(named: trip.imageName) {
+                                                    Image(uiImage: uiImage)
+                                                        .resizable()
+                                                        .scaledToFill()
+                                                        .frame(width: 45, height: 45)
+                                                        .cornerRadius(8)
+                                                        .clipped()
+                                                } else {
+                                                    Image(systemName: "map.fill")
+                                                        .foregroundColor(.brand)
+                                                        .frame(width: 45, height: 45)
+                                                        .background(Color.brand.opacity(0.15))
+                                                        .cornerRadius(8)
+                                                }
+
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(trip.title).font(.headline).foregroundColor(.primary)
+                                                    Text(trip.country).font(.subheadline).foregroundColor(.secondary)
+                                                }
+                                                Spacer()
+
+                                                Image(systemName: "heart.fill")
+                                                    .foregroundColor(.red)
+                                            }
+                                            .padding()
+                                            .background(Color.customBackground.opacity(0.6))
+                                            .cornerRadius(10)
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                        }
+
+                        // LOGG UT KNAPP
+                        Button(role: .destructive) {
+                            isAuthenticated = false
+                        } label: {
+                            HStack {
+                                Image(systemName: "arrow.right.square")
+                                Text("Logg ut")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.red)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(10)
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 20)
+                        .padding(.bottom, 30)
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
                 }
             }
             .navigationTitle("Profil")
         }
-        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }
 
 #Preview {
-    ProfileView(
-        userName: .constant("Lyn"),
-        destinations: [
-            Destination(
-                title: "Sommer i London",
-                country: "Storbritannia",
-                imageName: "map.fill",
-                items: []
-            )
-        ]
-    )
+    ProfileView()
+        .modelContainer(for: SavedTrip.self, inMemory: true)
 }

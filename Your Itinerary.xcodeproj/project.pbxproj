@@ -86,10 +86,11 @@
 				};
 			};
 			buildConfigurationList = 143C3BF330583955007B8E3E /* Build configuration list for PBXProject "Your Itinerary" */;
-			developmentRegion = en;
+			developmentRegion = nb;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				nb,
 				Base,
 			);
 			mainGroup = 143C3BEF30583955007B8E3E;
